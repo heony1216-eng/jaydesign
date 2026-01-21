@@ -55,13 +55,14 @@ function formatShortDate(dateString: string): string {
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
 
-// 순이익 계산: 기본금액(부가세제외) - 원가(부가세제외) - 내야할 부가세
-// 내야할 부가세 = 받은 부가세 - 매입 부가세
-// 순이익 = base_amount * 0.9 - cost * 9/11
-function calculateNetProfit(baseAmount: number | null, cost: number | null): number {
-  if (!baseAmount) return 0;
-  const costExVat = cost ? cost * 9 / 11 : 0;
-  return baseAmount * 0.9 - costExVat;
+// 순이익 계산: 총액(부가세제외) - 원가(부가세제외)
+// 총액에서 부가세 제외 = amount / 1.1
+// 원가에서 부가세 제외 = cost / 1.1
+function calculateNetProfit(amount: number | null, cost: number | null): number {
+  if (!amount) return 0;
+  const amountExVat = amount / 1.1;
+  const costExVat = cost ? cost / 1.1 : 0;
+  return amountExVat - costExVat;
 }
 
 // 주문일로부터 한달 지났는지 확인
@@ -448,19 +449,25 @@ export default function TransactionsPage() {
       return t.status === filter;
     })
     .sort((a, b) => {
-      // 1. 주문일 내림차순 (최신순)
+      // 1. 완료/카드 상태는 맨 밑으로
+      const aIsCompleted = a.status === 'completed' || a.status === 'card';
+      const bIsCompleted = b.status === 'completed' || b.status === 'card';
+      if (aIsCompleted !== bIsCompleted) {
+        return aIsCompleted ? 1 : -1;
+      }
+      // 2. 주문일 내림차순 (최신순)
       const dateA = a.order_date || '';
       const dateB = b.order_date || '';
       if (dateA !== dateB) {
         return dateB.localeCompare(dateA);
       }
-      // 2. 같은 날짜면 거래처명으로 정렬 (같은 거래처끼리 묶기)
+      // 3. 같은 날짜면 거래처명으로 정렬 (같은 거래처끼리 묶기)
       const nameA = a.clients?.name || '';
       const nameB = b.clients?.name || '';
       if (nameA !== nameB) {
         return nameA.localeCompare(nameB, 'ko');
       }
-      // 3. 같은 거래처면 메모로 정렬 (같은 메모끼리 묶기)
+      // 4. 같은 거래처면 메모로 정렬 (같은 메모끼리 묶기)
       const memoA = a.description || '';
       const memoB = b.description || '';
       return memoA.localeCompare(memoB, 'ko');
@@ -894,16 +901,16 @@ export default function TransactionsPage() {
               </div>
 
               {/* 순이익 표시 */}
-              {formData.baseAmount > 0 && formData.cost > 0 && (
+              {formData.amount > 0 && formData.cost > 0 && (
                 <div className="p-3 bg-green-50 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-green-700">순이익 (부가세/원가 제외)</span>
                     <div className="text-right">
                       <span className="font-bold text-green-600">
-                        {formatCurrency(calculateNetProfit(formData.baseAmount, formData.cost))}
+                        {formatCurrency(calculateNetProfit(formData.amount, formData.cost))}
                       </span>
                       <span className="ml-2 text-sm text-green-600">
-                        ({(calculateNetProfit(formData.baseAmount, formData.cost) / formData.baseAmount * 100).toFixed(1)}%)
+                        ({(calculateNetProfit(formData.amount, formData.cost) / (formData.amount / 1.1) * 100).toFixed(1)}%)
                       </span>
                     </div>
                   </div>
@@ -1131,11 +1138,22 @@ export default function TransactionsPage() {
                 </TableHeader>
                 <TableBody>
                   {filteredTransactions.map((t) => {
-                    // 배경색 우선순위: 선택 > 완료(회색) > 연체(빨강) > 견적+세금+입금(회색) > 견적+세금(연두)
-                    const isAllDone = t.quote_sent_at && t.tax_invoice_sent_at && t.paid_at;
-                    const isDocsDone = t.quote_sent_at && t.tax_invoice_sent_at && !t.paid_at;
+                    // 배경색 우선순위: 선택 > 연체 > 상태별 색상
+                    const isOverdueItem = t.status !== 'completed' && t.status !== 'card' && isOverdue(t.order_date);
+                    const getRowBgColor = () => {
+                      if (selectedIds.has(t.id)) return 'bg-blue-100';
+                      if (isOverdueItem) return 'bg-red-50';
+                      switch (t.status) {
+                        case 'quote': return 'bg-red-50';
+                        case 'design': return 'bg-blue-50';
+                        case 'production': return 'bg-yellow-50';
+                        case 'completed': return 'bg-gray-100 text-gray-500';
+                        case 'card': return 'bg-gray-100 text-gray-500';
+                        default: return '';
+                      }
+                    };
                     return (
-                    <TableRow key={t.id} className={`${selectedIds.has(t.id) ? 'bg-blue-50' : ''} ${(t.status === 'completed' || t.status === 'card' || isAllDone) ? 'bg-gray-100 text-gray-500' : ''} ${t.status !== 'completed' && t.status !== 'card' && !isAllDone && isOverdue(t.order_date) ? 'bg-red-50' : ''} ${isDocsDone && t.status !== 'completed' && t.status !== 'card' && !isOverdue(t.order_date) ? 'bg-green-50' : ''}`}>
+                    <TableRow key={t.id} className={getRowBgColor()}>
                       <TableCell>
                         <input
                           type="checkbox"
@@ -1263,13 +1281,13 @@ export default function TransactionsPage() {
                         {formatCurrency(t.amount)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {t.base_amount && t.cost ? (
+                        {t.amount && t.cost ? (
                           <div>
                             <span className="font-medium text-green-600">
-                              {formatCurrency(calculateNetProfit(t.base_amount, t.cost))}
+                              {formatCurrency(calculateNetProfit(t.amount, t.cost))}
                             </span>
                             <span className="text-xs text-gray-500 ml-1">
-                              ({(calculateNetProfit(t.base_amount, t.cost) / t.base_amount * 100).toFixed(0)}%)
+                              ({(calculateNetProfit(t.amount, t.cost) / (t.amount / 1.1) * 100).toFixed(0)}%)
                             </span>
                           </div>
                         ) : '-'}
@@ -1360,15 +1378,21 @@ export default function TransactionsPage() {
                             value={t.status}
                             onValueChange={(v) => handleStatusChange(t.id, v as TransactionStatus)}
                           >
-                            <SelectTrigger className="w-[90px] h-7 text-xs">
+                            <SelectTrigger className={`w-[90px] h-7 text-xs ${
+                              t.status === 'quote' ? 'bg-gray-100 text-gray-700' :
+                              t.status === 'design' ? 'bg-blue-100 text-blue-700' :
+                              t.status === 'production' ? 'bg-yellow-100 text-yellow-700' :
+                              t.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              t.status === 'card' ? 'bg-purple-100 text-purple-700' : ''
+                            }`}>
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="quote">견적문의</SelectItem>
-                              <SelectItem value="design">시안</SelectItem>
-                              <SelectItem value="production">제작</SelectItem>
-                              <SelectItem value="completed">완료</SelectItem>
-                              <SelectItem value="card">카드</SelectItem>
+                              <SelectItem value="quote" className="text-gray-700">견적문의</SelectItem>
+                              <SelectItem value="design" className="text-blue-700">시안</SelectItem>
+                              <SelectItem value="production" className="text-yellow-700">제작</SelectItem>
+                              <SelectItem value="completed" className="text-green-700">완료</SelectItem>
+                              <SelectItem value="card" className="text-purple-700">카드</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
