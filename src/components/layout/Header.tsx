@@ -10,6 +10,8 @@ const navItems = [
   { href: '/', label: '대시보드' },
   { href: '/transactions', label: '거래내역' },
   { href: '/clients', label: '거래처' },
+  { href: '/quote', label: '견적서' },
+  { href: '/worklog', label: '작업 일지' },
   { href: '/upload', label: '통장 업로드' },
 ];
 

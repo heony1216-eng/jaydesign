@@ -154,3 +154,14 @@ export interface ParsedBankRecord {
   amount: number;
   balance: number | null;
 }
+
+// 작업 일지
+export interface WorkLog {
+  id: string;
+  clientName: string; // 거래처
+  task: string; // 할일
+  assignee: string; // 담당자
+  status: 'pending' | 'completed';
+  completedAt: string | null; // 완료 시각
+  createdAt: string;
+}
