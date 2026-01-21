@@ -901,16 +901,16 @@ export default function TransactionsPage() {
               </div>
 
               {/* 순이익 표시 */}
-              {formData.amount > 0 && formData.cost > 0 && (
+              {formData.baseAmount > 0 && formData.cost > 0 && (
                 <div className="p-3 bg-green-50 rounded-lg">
                   <div className="flex items-center justify-between">
                     <span className="font-medium text-green-700">순이익 (부가세/원가 제외)</span>
                     <div className="text-right">
                       <span className="font-bold text-green-600">
-                        {formatCurrency(calculateNetProfit(formData.amount, formData.cost))}
+                        {formatCurrency(calculateNetProfit(Math.round(formData.baseAmount * 1.1), formData.cost))}
                       </span>
                       <span className="ml-2 text-sm text-green-600">
-                        ({(calculateNetProfit(formData.amount, formData.cost) / (formData.amount / 1.1) * 100).toFixed(1)}%)
+                        ({(calculateNetProfit(Math.round(formData.baseAmount * 1.1), formData.cost) / formData.baseAmount * 100).toFixed(1)}%)
                       </span>
                     </div>
                   </div>
