@@ -1110,7 +1110,7 @@ export default function TransactionsPage() {
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="text-sm">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px]">
@@ -1121,19 +1121,19 @@ export default function TransactionsPage() {
                         className="w-4 h-4 rounded border-gray-300"
                       />
                     </TableHead>
-                    <TableHead>거래처</TableHead>
-                    <TableHead>담당자</TableHead>
-                    <TableHead>주문일</TableHead>
-                    <TableHead>품목</TableHead>
-                    <TableHead>사이즈</TableHead>
-                    <TableHead>수량</TableHead>
-                    <TableHead>후가공</TableHead>
-                    <TableHead className="text-right">금액</TableHead>
-                    <TableHead className="text-right">순이익</TableHead>
-                    <TableHead>견적/세금</TableHead>
-                    <TableHead className="min-w-[150px]">메모</TableHead>
-                    <TableHead>상태</TableHead>
-                    <TableHead className="w-[200px]">관리</TableHead>
+                    <TableHead className="py-2">거래처</TableHead>
+                    <TableHead className="py-2">담당자</TableHead>
+                    <TableHead className="py-2 whitespace-nowrap">주문일</TableHead>
+                    <TableHead className="py-2">품목</TableHead>
+                    <TableHead className="py-2">사이즈</TableHead>
+                    <TableHead className="py-2 w-[50px]">수량</TableHead>
+                    <TableHead className="py-2">후가공</TableHead>
+                    <TableHead className="py-2 text-right whitespace-nowrap">금액</TableHead>
+                    <TableHead className="py-2 text-right whitespace-nowrap">순이익</TableHead>
+                    <TableHead className="py-2 whitespace-nowrap">견적/세금</TableHead>
+                    <TableHead className="py-2 min-w-[100px]">메모</TableHead>
+                    <TableHead className="py-2">상태</TableHead>
+                    <TableHead className="py-2 w-[180px]">관리</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1141,28 +1141,28 @@ export default function TransactionsPage() {
                     // 배경색 우선순위: 선택 > 연체 > 상태별 색상
                     const isOverdueItem = t.status !== 'completed' && t.status !== 'card' && isOverdue(t.order_date);
                     const getRowBgColor = () => {
-                      if (selectedIds.has(t.id)) return 'bg-blue-100';
-                      if (isOverdueItem) return 'bg-red-50';
+                      if (selectedIds.has(t.id)) return 'bg-blue-200';
+                      if (isOverdueItem) return 'bg-red-100';
                       switch (t.status) {
-                        case 'quote': return 'bg-red-50';
-                        case 'design': return 'bg-blue-50';
-                        case 'production': return 'bg-yellow-50';
-                        case 'completed': return 'bg-gray-100 text-gray-500';
-                        case 'card': return 'bg-gray-100 text-gray-500';
+                        case 'quote': return 'bg-red-100';
+                        case 'design': return 'bg-blue-100';
+                        case 'production': return 'bg-yellow-100';
+                        case 'completed': return 'bg-gray-200 text-gray-500';
+                        case 'card': return 'bg-gray-200 text-gray-500';
                         default: return '';
                       }
                     };
                     return (
                     <TableRow key={t.id} className={getRowBgColor()}>
-                      <TableCell>
+                      <TableCell className="py-1.5 px-2">
                         <input
                           type="checkbox"
                           checked={selectedIds.has(t.id)}
                           onChange={() => toggleSelect(t.id)}
-                          className="w-4 h-4 rounded border-gray-300"
+                          className="w-3.5 h-3.5 rounded border-gray-300"
                         />
                       </TableCell>
-                      <TableCell className="font-medium">
+                      <TableCell className="py-1.5 px-2 font-medium">
                         {t.clients ? (
                           <Popover>
                             <PopoverTrigger asChild>
@@ -1216,7 +1216,7 @@ export default function TransactionsPage() {
                           '-'
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1.5 px-2">
                         {t.clients ? (
                           <Popover>
                             <PopoverTrigger asChild>
@@ -1270,17 +1270,17 @@ export default function TransactionsPage() {
                           t.manager_name || '-'
                         )}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1.5 px-2 whitespace-nowrap">
                         {t.order_date ? formatDate(t.order_date) : '-'}
                       </TableCell>
-                      <TableCell>{t.item_name || '-'}</TableCell>
-                      <TableCell>{t.item_size || '-'}</TableCell>
-                      <TableCell>{t.item_quantity || '-'}</TableCell>
-                      <TableCell>{t.post_processing || '-'}</TableCell>
-                      <TableCell className="text-right font-medium">
+                      <TableCell className="py-1.5 px-2">{t.item_name || '-'}</TableCell>
+                      <TableCell className="py-1.5 px-2">{t.item_size || '-'}</TableCell>
+                      <TableCell className="py-1.5 px-2">{t.item_quantity || '-'}</TableCell>
+                      <TableCell className="py-1.5 px-2">{t.post_processing || '-'}</TableCell>
+                      <TableCell className="py-1.5 px-2 text-right font-medium whitespace-nowrap">
                         {formatCurrency(t.amount)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="py-1.5 px-2 text-right whitespace-nowrap">
                         {t.amount && t.cost ? (
                           <div>
                             <span className="font-medium text-green-600">
@@ -1292,14 +1292,14 @@ export default function TransactionsPage() {
                           </div>
                         ) : '-'}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-1">
+                      <TableCell className="py-1.5 px-2">
+                        <div className="flex flex-col gap-0.5">
                           <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-500 w-4">견</span>
+                            <span className="text-xs text-gray-500 w-3">견</span>
                             <input
                               type="text"
                               placeholder="M/D"
-                              className={`text-xs border rounded px-1 py-0.5 w-[50px] text-center ${t.quote_sent_at ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-300'}`}
+                              className={`text-xs border rounded px-1 py-0.5 w-[45px] text-center ${t.quote_sent_at ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-300'}`}
                               key={`quote-${t.id}-${t.quote_sent_at}`}
                               defaultValue={t.quote_sent_at ? `${new Date(t.quote_sent_at).getMonth() + 1}/${new Date(t.quote_sent_at).getDate()}` : ''}
                               onBlur={(e) => {
@@ -1330,11 +1330,11 @@ export default function TransactionsPage() {
                             />
                           </div>
                           <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-500 w-4">세</span>
+                            <span className="text-xs text-gray-500 w-3">세</span>
                             <input
                               type="text"
                               placeholder="M/D"
-                              className={`text-xs border rounded px-1 py-0.5 w-[50px] text-center ${t.tax_invoice_sent_at ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-gray-300'}`}
+                              className={`text-xs border rounded px-1 py-0.5 w-[45px] text-center ${t.tax_invoice_sent_at ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-gray-300'}`}
                               key={`tax-${t.id}-${t.tax_invoice_sent_at}`}
                               defaultValue={t.tax_invoice_sent_at ? `${new Date(t.tax_invoice_sent_at).getMonth() + 1}/${new Date(t.tax_invoice_sent_at).getDate()}` : ''}
                               onBlur={(e) => {
@@ -1366,19 +1366,19 @@ export default function TransactionsPage() {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-[200px]">
-                        <span className="whitespace-pre-wrap break-words">{t.description || '-'}</span>
+                      <TableCell className="py-1.5 px-2 max-w-[120px]">
+                        <span className="whitespace-pre-wrap break-words text-xs">{t.description || '-'}</span>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1.5 px-2">
                         <div className="flex items-center gap-1">
                           {t.status !== 'completed' && t.status !== 'card' && isOverdue(t.order_date) && (
-                            <Badge variant="destructive" className="text-xs">연체</Badge>
+                            <Badge variant="destructive" className="text-xs px-1">연체</Badge>
                           )}
                           <Select
                             value={t.status}
                             onValueChange={(v) => handleStatusChange(t.id, v as TransactionStatus)}
                           >
-                            <SelectTrigger className={`w-[90px] h-7 text-xs ${
+                            <SelectTrigger className={`w-[75px] h-6 text-xs ${
                               t.status === 'quote' ? 'bg-gray-100 text-gray-700' :
                               t.status === 'design' ? 'bg-blue-100 text-blue-700' :
                               t.status === 'production' ? 'bg-yellow-100 text-yellow-700' :
@@ -1397,14 +1397,14 @@ export default function TransactionsPage() {
                           </Select>
                         </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="py-1.5 px-2">
                         <div className="flex gap-1 items-center whitespace-nowrap">
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-0.5">
                             <span className="text-xs text-gray-500">입금</span>
                             <input
                               type="text"
                               placeholder="M/D"
-                              className={`text-xs border rounded px-1 py-0.5 w-[50px] text-center ${t.paid_at ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-300'}`}
+                              className={`text-xs border rounded px-1 py-0.5 w-[45px] text-center ${t.paid_at ? 'border-green-400 bg-green-50 text-green-700' : 'border-gray-300'}`}
                               key={`paid-${t.id}-${t.paid_at}`}
                               defaultValue={t.paid_at ? `${new Date(t.paid_at).getMonth() + 1}/${new Date(t.paid_at).getDate()}` : ''}
                               onBlur={(e) => {
@@ -1437,7 +1437,7 @@ export default function TransactionsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-6 px-1.5 text-xs"
                             onClick={() => handleCopy(t)}
                           >
                             복사
@@ -1445,7 +1445,7 @@ export default function TransactionsPage() {
                           <Button
                             variant="outline"
                             size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-6 px-1.5 text-xs"
                             onClick={() => handleOpenDialog(t)}
                           >
                             수정
@@ -1453,7 +1453,7 @@ export default function TransactionsPage() {
                           <Button
                             variant="destructive"
                             size="sm"
-                            className="h-7 px-2 text-xs"
+                            className="h-6 px-1.5 text-xs"
                             onClick={() => handleDelete(t.id)}
                           >
                             삭제
